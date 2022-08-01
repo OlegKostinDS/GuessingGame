@@ -19,16 +19,17 @@ class GameFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
         _binding = FragmentGameBinding.inflate(inflater, container, false)
         viewModel = ViewModelProvider(this).get(GameViewModel::class.java)
+        val view = binding.root
+        updateScreen()
         binding.guessButton.setOnClickListener {
             viewModel.makeGuess(binding.guess.text.toString().uppercase())
             binding.guess.text = null
+
             updateScreen()
 
 
-            val view = binding.root
             if (viewModel.isWon() || viewModel.isLost()) {
                 val action = GameFragmentDirections
                     .actionGameFragmentToResultFragment(viewModel.wonLostMessage())
@@ -39,6 +40,7 @@ class GameFragment : Fragment() {
     }
 
     private fun updateScreen() {
+        
         binding.word.text = viewModel.secretWordDisplay
         binding.lives.text =
             "You have ${viewModel.livesLeft} lives left"
