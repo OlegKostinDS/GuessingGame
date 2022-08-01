@@ -1,19 +1,26 @@
 package ru.dsvusial.guessinggame
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 
 class GameViewModel : ViewModel() {
 
 
-    val words = listOf("Android", "Activity", "Fragment")
-    var secretWordDisplay = ""
-    var secretWord = words.random().uppercase()
-    var correctGuesses = ""
-    var incorrectGuesses = ""
-    var livesLeft = 8
+    private val words = listOf("Android", "Activity", "Fragment")
 
+    private val _secretWordDisplay = MutableLiveData<String>()
+    val secretWordDisplay get() = _secretWordDisplay
+    private var secretWord = words.random().uppercase()
+    var correctGuesses = ""
+    private val _incorrectGuesses = MutableLiveData<String>("")
+    val incorrectGuesses get() = _incorrectGuesses
+    private val _livesLeft = MutableLiveData<Int>(8)
+    val livesLeft get() = _livesLeft
+private val _gameOver = MutableLiveData<Boolean>(false)
+    val gameOver: LiveData<Boolean> get() = _gameOver
     init {
-        secretWordDisplay = deriveSecretWordDisplay()
+        _secretWordDisplay.value = deriveSecretWordDisplay()
     }
 
     private fun deriveSecretWordDisplay(): String {
@@ -34,15 +41,16 @@ class GameViewModel : ViewModel() {
         if (guess.length == 1) {
             if (secretWord.contains(guess)) {
                 correctGuesses += guess
-                secretWordDisplay = deriveSecretWordDisplay()
+                _secretWordDisplay.value = deriveSecretWordDisplay()
             } else {
-                incorrectGuesses += "$guess "
-                livesLeft--
+                _incorrectGuesses.value += "$guess "
+                _livesLeft.value = _livesLeft.value?.minus(1)
             }
+            if (isWon() || isLost()) _gameOver.value = true
         }
     }
 
-     fun wonLostMessage(): String {
+    fun wonLostMessage(): String {
         var message = ""
         if (isWon()) message = "You won!"
         else if (isLost()) message = "You lost!"
@@ -50,8 +58,8 @@ class GameViewModel : ViewModel() {
         return message
     }
 
-     fun isWon() = secretWord.equals(secretWordDisplay, true)
-    fun isLost() = livesLeft <= 0
+    fun isWon() = secretWord.equals(secretWordDisplay.value, true)
+    fun isLost() = (livesLeft.value ?: 0) <= 0
 
 
 }
